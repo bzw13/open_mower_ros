@@ -472,19 +472,28 @@ void checkSafety(const ros::TimerEvent& timer_event) {
   }
 
   bool gpsTimeout = ros::Time::now() - last_good_gps > ros::Duration(last_config.gps_timeout);
+  bool gpsEverAcquired = last_good_gps > ros::Time(0.0);
+
+  // Dead reckoning: when drive_without_gps is enabled and GPS was previously acquired but is
+  // now lost, xbot_positioning keeps the Kalman filter running via IMU gyro + wheel odometry.
+  // Only applies during mowing; docking and undocking still require a GPS fix.
+  bool useDeadReckoning =
+      last_config.use_dead_reckoning && gpsTimeout && gpsEverAcquired && currentBehavior == &MowingBehavior::INSTANCE;
 
   if (gpsTimeout) {
-    // GPS = bad, set quality to 0
     high_level_status.gps_quality_percent = 0;
     if (currentBehavior->needs_gps()) {
-      ROS_WARN_STREAM_THROTTLE(1, "GPS timeout");
+      if (useDeadReckoning) {
+        ROS_WARN_STREAM_THROTTLE(5, "GPS fix lost - continuing mowing on dead reckoning (IMU + wheel odometry)");
+      } else {
+        ROS_WARN_STREAM_THROTTLE(1, "GPS timeout");
+      }
     }
   }
 
   if (currentBehavior != nullptr && currentBehavior->needs_gps()) {
-    currentBehavior->setGoodGPS(!gpsTimeout);
-    // Stop the mower
-    if (gpsTimeout) {
+    currentBehavior->setGoodGPS(!gpsTimeout || useDeadReckoning);
+    if (gpsTimeout && !useDeadReckoning) {
       stopBlade();
       stopMoving();
       return;

@@ -37,6 +37,7 @@ mower_logic:
   mow_angle_increment: 0
   gps_wait_time: 10.0
   gps_timeout: 10.0
+  use_dead_reckoning: false
   rain_mode: 0
   rain_delay_minutes: 30
   rain_check_seconds: 20
