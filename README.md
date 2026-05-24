@@ -106,6 +106,8 @@ Copy the settings for **Build directory** and **CMake options**. Everything else
 - For local navigation, I have tried to use the teb_local_planner. Unfortunately, it seems that (at least for me) the noetic version is VERY broken. Therefore I added the current melodic dev version as git submodule to this repo. It seems to work fine with ROS noetic and this setup here.
 - If the map has no docking point set, planning crashes as soon as we try to approach the docking point. TODO: check, before even starting to mow.
 
+build!
+
 # License
 
 This work is licensed under the [GNU General Public License version 3](https://www.gnu.org/licenses/gpl-3.0.html). See the [LICENSE](LICENSE) file for details.
